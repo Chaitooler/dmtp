@@ -1,16 +1,20 @@
+install.packages("jsonlite")
 library(jsonlite)
+install.packages("mongolite")
 library(mongolite)
+install.packages("dplyr")
 library(dplyr)
 install.packages("scatterplot3d")
 library(scatterplot3d)
+install.packages("readr")
 library(readr)
 
 install.packages("Rlof")
 library(Rlof)
 
-sucursales = stream_in(file("sucursales.json",open="r"))
-productos = stream_in(file("productos.json",open="r"))
-precios = stream_in(file("C:/Users/cmarcusa/Desktop/Maestria/DM/dmtp/data/precios.json",open="r"))
+sucursales = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/sucursales.json",open="r"))
+productos = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/productos.json",open="r"))
+precios = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/precios.json",open="r"))
 
 length(precios)
 
@@ -51,6 +55,7 @@ preciostb <- tbl_df (preciosclean)
 ## MEDICIONES ##
 medicion1 = preciosclean %>% 
   filter(medicion==1)
+summary(medicion1)
 medicion2 = preciosclean %>% 
   filter(medicion==2)
 medicion3 = preciosclean %>% 
@@ -67,6 +72,9 @@ medicion8 = preciosclean %>%
   filter(medicion==8)
 medicion9 = preciosclean %>% 
   filter(medicion==9)
+medicion10 = preciosclean %>% 
+  filter(medicion==10)
+summary(medicion10)
 
 preciosPorProductoPorSucursal = preciosclean %>%
   group_by(producto, sucursal) %>%
@@ -119,7 +127,11 @@ pregunta4 = inner_join(preciosclean, sucursales, by=c("sucursal"="id"))
 pregunta4joineada = pregunta4 %>%
   group_by(sucursal, sucursalTipo) %>%
   filter(sucursalTipo %in% c("Supermercado", "Hipermercado")) %>%
-  summarise(avg_precio = mean(precio, na.rm=FALSE), var = sd(precio, na.rm=FALSE), cantidadProd=n_distinct(producto))
+  summarise(avg_precio = mean(precio, na.rm=FALSE), 
+            var = sd(precio, na.rm=FALSE), 
+            cantidadProd=n_distinct(producto),
+            maximo = max(precio, na.rm = FALSE),
+            minimo = min(precio, na.rm=FALSE))
   
 
 pregunta4resumida = pregunta4joineada %>%
@@ -127,8 +139,38 @@ pregunta4resumida = pregunta4joineada %>%
   summarise(avg_mean = mean(avg_precio, na.rm=FALSE), avg_var = mean(var, na.rm=FALSE), promedioProductos=mean(cantidadProd, na.rm=FALSE))
 
 
+### Pregunta 5 : En que período se produjo el mayor incremento de precios?
+
+pregunta5 = preciosclean %>%
+  group_by(medicion) %>%
+  summarise(avg_precio = mean(precio, na.rm=FALSE),
+            max_precio=max(precio, na.rm=FALSE),
+            min_precio=min(precio, na.rm=FALSE))
+  
+
+boxplot(preciosclean$precio ~ preciosclean$medicion)  
 
 
+###Faltantes
+preciossinfaltantes= preciosclean %>%
+  filter()
+  
+  
+  
+### Pregunta 6:
+summary(preciosclean$precio)
+
+Q = preciosclean %>%
+  filter(precio>42, precio<95.99)
+
+O = preciosclean %>%
+  filter(precio>200)
+  
+boxplot(Q$precio ~ Q$medicion)
+
+boxplot(O$precio  ~  O$medicion)
+  
+  
 ### Agrupaciones por producto
 
 preciosPorProductoTotal = preciosclean %>%
@@ -141,7 +183,7 @@ umbral<-4
 preciosPorProductoTotal$outlier <- (preciosPorProductoTotal$score>umbral)
 preciosPorProductoTotal <- na.omit(preciosPorProductoTotal)
 preciosPorProductoTotal$color <- ifelse(preciosPorProductoTotal$outlier, "red", "black")
-scatterplot3d(preciosPorProductoTotal$avg_precio, preciosPorProductoTotal$var, preciosPorProductoTotal$presenciaEnSucursales, color = preciosPorProductoTotal$color)
+scatterplot3d(preciosPorProductoTotal$avg_precio, preciosPorProductoTotal$var, preciosPorProductoTotal$presenciaEnSucursales, color = preciosPorProductoTotal$color,  pch=16, grid=TRUE, box=FALSE, type="h")
 
 ##Vemos los rojos:
 outliersPorProducto = preciosPorProductoTotal %>%
@@ -160,17 +202,17 @@ scatterplot3d(as.factor(preciosPorSucursal$sucursal), preciosPorSucursal$avg_pre
 
 productosPorSucursal = preciosclean %>%
   group_by(sucursal) %>%
-  summarize(avg_precio = mean(precio,na.rm=TRUE), var=sd(precio,na.rm=TRUE), cant_productos=n())
+  summarize(avg_precio = mean(precio,na.rm=TRUE), var=sd(precio,na.rm=TRUE), cant_productos=n_distinct(producto))
 scatterplot3d(productosPorSucursal$avg_precio, productosPorSucursal$var, productosPorSucursal$cant_productos)
 
 ##Vemos outliers con LOF por sucursal
-productosPorSucursalClean = productosPorSucursal[ , -which(names(productosPorSucursal) %in% c("sucursal"))]
-productosPorSucursalClean$score<-lof(productosPorSucursalClean, k=3)
+productosPorSucursalClean = productosPorSucursal
+productosPorSucursalClean$score<-lof(productosPorSucursalClean[ , -which(names(productosPorSucursal) %in% c("sucursal"))], k=3)
 umbral<-4
 productosPorSucursalClean$outlier <- (productosPorSucursalClean$score>umbral)
 productosPorSucursalClean <- na.omit(productosPorSucursalClean)
 productosPorSucursalClean$color <- ifelse(productosPorSucursalClean$outlier, "red", "black")
-scatterplot3d(productosPorSucursalClean$avg_precio, productosPorSucursalClean$var, productosPorSucursalClean$cant_productos, color = productosPorSucursalClean$color)
+scatterplot3d(productosPorSucursalClean$avg_precio, productosPorSucursalClean$var, productosPorSucursalClean$cant_productos, color = productosPorSucursalClean$color, pch=16, grid=TRUE, box=FALSE, type="h")
 
 ##Vemos los rojos:
 outliersPorSucursal = productosPorSucursalClean %>%
@@ -199,13 +241,28 @@ umbral<-4
 preciosPorMedicion$outlier <- (preciosPorMedicion$score>umbral)
 preciosPorMedicion <- na.omit(preciosPorMedicion)
 preciosPorMedicion$color <- ifelse(preciosPorMedicion$outlier, "red", "black")
-scatterplot3d(preciosPorMedicion$avg_precio, preciosPorMedicion$var, preciosPorMedicion$cant_productos, color = preciosPorMedicion$color)
+scatterplot3d(preciosPorMedicion$avg_precio, preciosPorMedicion$var, preciosPorMedicion$cant_productos, color = preciosPorMedicion$color, pch=16, grid=TRUE, box=FALSE, type="h")
 
 ##Vemos los rojos:
 outliersPorMedicion = preciosPorMedicion %>%
   filter(color=="red")
 
 
+boxplot(preciosclean$precio)
+
+### OUTLIERS SEGUN TODO
+preciosparaoutliers = preciosclean %>%
+  mutate_if(sapply(preciosclean, is.character), as.factor)
+preciosparaoutliers = preciosparaoutliers[ , -which(names(preciosparaoutliers) %in% c("fecha"))]
+
+preciosparaoutliers$score<-lof(preciosparaoutliers, k=3)
+umbral <- 4
+preciosparaoutliers$outlier <- preciosparaoutliers$score > umbral
+preciosparaoutliers <- na.omit(preciosparaoutliers)
+preciosparaoutliers$color <- ifelse(preciosparaoutliers$outlier, "red", "black")
+scatterplot3d(preciosparaoutliers$producto, preciosparaoutliers$sucursal, preciosparaoutliers$medicion)
+
+summary(preciosparaoutliers)
 ############# ANALISIS #################
 ## plots de precios
 boxplot(preciosclean$precio ~ preciosclean$medicion)
