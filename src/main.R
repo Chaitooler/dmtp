@@ -104,14 +104,30 @@ pregunta1 = preciosPorProducto %>%
 joined= inner_join(pregunta1, productos, by=c("producto" = "id"))
 
 
-### Pregunta 2 Marcas con mayor modificacion de precios
+### Pregunta 2 y 3 Marcas con mayor modificacion de precios
 
 pregunta2 = inner_join(preciosPorProducto, productos, by=c("producto"="id"))
 
 pregunta2joineada = pregunta2 %>%
   group_by(marca) %>%
   summarise(avg_var = median(var, na.rm=TRUE))
+
+### Pregunta 4 Hipermercados vs supermercados
+
+pregunta4 = inner_join(preciosclean, sucursales, by=c("sucursal"="id"))
+
+pregunta4joineada = pregunta4 %>%
+  group_by(sucursal, sucursalTipo) %>%
+  filter(sucursalTipo %in% c("Supermercado", "Hipermercado")) %>%
+  summarise(avg_precio = mean(precio, na.rm=FALSE), var = sd(precio, na.rm=FALSE), cantidadProd=n_distinct(producto))
   
+
+pregunta4resumida = pregunta4joineada %>%
+  group_by(sucursalTipo) %>%
+  summarise(avg_mean = mean(avg_precio, na.rm=FALSE), avg_var = mean(var, na.rm=FALSE), promedioProductos=mean(cantidadProd, na.rm=FALSE))
+
+
+
 
 ### Agrupaciones por producto
 
