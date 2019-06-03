@@ -93,10 +93,25 @@ preciosPorProducto = preciosclean %>%
   group_by(producto) %>%
   summarise(avg_precio = mean(precio, na.rm=TRUE), mediana = median(precio, na.rm=TRUE), var = sd(precio, na.rm = TRUE), minimo = min(precio, na.rm= TRUE), maximo = max(precio, na.rm = TRUE))
 
-## Media de precio vs Varianza.
+## Pregunta 1 Media de precio vs Varianza.
 boxplot(preciosPorProducto$avg_precio)
 plot(sort(preciosPorProducto$avg_precio, decreasing = FALSE), preciosPorProducto$var)
 scatterplot3d(preciosPorProducto$producto, preciosPorProducto$avg_precio, preciosPorProducto$var)
+
+pregunta1 = preciosPorProducto %>%
+  filter(preciosPorProducto$var>40)
+
+joined= inner_join(pregunta1, productos, by=c("producto" = "id"))
+
+
+### Pregunta 2 Marcas con mayor modificacion de precios
+
+pregunta2 = inner_join(preciosPorProducto, productos, by=c("producto"="id"))
+
+pregunta2joineada = pregunta2 %>%
+  group_by(marca) %>%
+  summarise(avg_var = median(var, na.rm=TRUE))
+  
 
 ### Agrupaciones por producto
 
@@ -207,4 +222,4 @@ plot(preciosconfaltantes$fecha, preciosconfaltantes$medicion, xlab = "fecha", yl
 
 ### PREGUNTAS
 
-##
+## Productos que sufrieron mayores y menores variaciones en el tiempo.
