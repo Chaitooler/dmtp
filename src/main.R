@@ -12,9 +12,9 @@ library(readr)
 install.packages("Rlof")
 library(Rlof)
 
-sucursales = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/sucursales.json",open="r"))
-productos = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/productos.json",open="r"))
-precios = stream_in(file("E:/Chaito/Desktop/Facultad/dmtp/data/precios.json",open="r"))
+sucursales = stream_in(file("C:/Users/chait/Desktop/Facultad/dmtp/data/sucursales.json",open="r"))
+productos = stream_in(file("C:/Users/chait/Desktop/Facultad/dmtp/data/productos.json",open="r"))
+precios = stream_in(file("C:/Users/chait/Desktop/Facultad/dmtp/data/precios.json",open="r"))
 
 length(precios)
 
@@ -92,6 +92,8 @@ preciosPorProductoPorSucursalNOFaltantes = preciosclean %>%
   group_by(producto, sucursal) %>%
   summarise(avg_precio = mean(precio, na.rm=TRUE), var = sd(precio, na.rm = TRUE), mediciones = n()) %>%
   filter(mediciones==10)
+
+
 
 #vemos que hay muchso datos faltantes. Se verá a futuro si hacen falta en el análisis o no.
 
@@ -296,3 +298,26 @@ plot(preciosconfaltantes$fecha, preciosconfaltantes$medicion, xlab = "fecha", yl
 ### PREGUNTAS
 
 ## Productos que sufrieron mayores y menores variaciones en el tiempo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################################
+## TP2
+#########################################
+
+install.packages('tidyr')
+library(tidyr)
+preciosHorizontal =  preciosclean %>%
+  select(-fecha) %>%
+  spread(medicion, precio) 
+
