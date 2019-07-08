@@ -454,3 +454,54 @@ headphback = headph
 headph<- agregarColumnasPeriodos(headph)
 headph <- agregarVariaciones(headph)
 headph <- discretizacionDeVariaciones(headph)
+
+
+#### Agrupaciones por producto
+
+mediasPorProducto <- function(dataframe) {
+  dataframe = dataframe %>% 
+    group_by(producto) %>%
+    summarise(avg_p1 = mean(p1, na.rm=TRUE), 
+              avg_p2 = mean(p2, na.rm=TRUE), 
+              avg_p3 = mean(p3, na.rm=TRUE), 
+              avg_p4 = mean(p4, na.rm=TRUE), 
+              avg_pt = mean(precioPromedio, na.rm=TRUE))
+  
+  return (dataframe)
+}
+
+### Test
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+headph<- agregarColumnasPeriodos(headph)
+avgPorProducto <- mediasPorProducto(headph)
+
+
+### Precios relativos
+preciosRelativoProducto <- function (producto, avgProducto) {
+  print(avgProducto)
+  return (avgProducto [which(avgProducto$producto == producto),])
+}
+
+
+preciosRelativos <- function(dataframe, avgPorProducto) {
+  for ( i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    precioRelativoProducto = preciosRelativoProducto(row$producto, avgPorProducto)
+    print(precioRelativoProducto)
+    dataframe[i,"pr1"] <- (row$p1 - precioRelativoProducto$`avg_p1`) / precioRelativoProducto$`avg_p1`
+    dataframe[i,"pr2"] <- (row$p2 - precioRelativoProducto$`avg_p2`) / precioRelativoProducto$`avg_p2`
+    dataframe[i,"pr3"] <- (row$p3 - precioRelativoProducto$`avg_p3`) / precioRelativoProducto$`avg_p3`
+    dataframe[i,"pr4"] <- (row$p4 - precioRelativoProducto$`avg_p4`) / precioRelativoProducto$`avg_p4`
+    dataframe[i,"prt"] <- (row$precioPromedio - precioRelativoProducto$`avg_pt`) / precioRelativoProducto$`avg_pt`
+  }
+  
+  return (dataframe)
+  
+}
+### TEst
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+headph<- agregarColumnasPeriodos(headph)
+avgPorProducto <- mediasPorProducto(headph)
+headph <- preciosRelativos (headph, avgPorProducto)
