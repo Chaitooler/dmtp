@@ -560,8 +560,21 @@ plot(radios["BARRIO"], border = NA)
 summary(radios)
 View(radios)
 
+exampleLat = -34.55212
+exampleLong = -58.49841
+
+exampleCord = c(exampleLat, exampleLong)
+
 inter <- radios %>%
-  select(st_intersection(geometry, ))
+  filter(st_intersection(geometry, exampleCord))
 
 
 geom = st_geometry(radios)
+
+
+sucursalLatLong = sucursalesclean %>% select(id, lat, lng)
+write.csv(sucursalLatLong, "C:/Users/chait/Desktop/Facultad/dmtp/data/sucursaleslatlong.csv")
+
+
+
+https://api.opencagedata.com/geocode/v1/json?key=6a672e7c63824ffea1bd8d2d3e2f5b6b&q=-34.55212%2C+-58.49841&pretty=1&no_annotations=1  

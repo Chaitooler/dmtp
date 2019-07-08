@@ -1,0 +1,26 @@
+{
+  "name": "dmtp",
+  "version": "1.0.0",
+  "description": "Data mining tp",
+  "main": "suburbconverter.js",
+  "scripts": {
+    "test": "node ./src/suburbconverter.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chaitooler/dmtp.git"
+  },
+  "author": "cmarcusa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chaitooler/dmtp/issues"
+  },
+  "homepage": "https://github.com/Chaitooler/dmtp#readme",
+  "dependencies": {
+    "async": "^3.1.0",
+    "csv-parse": "^4.4.3",
+    "csvtojson": "^2.0.10",
+    "fs": "0.0.1-security",
+    "jsonfile": "^5.0.0"
+  }
+}
