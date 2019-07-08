@@ -543,3 +543,25 @@ avgPorProducto <- mediasPorProducto(headph)
 headph <- preciosRelativos (headph, avgPorProducto)
 headph <- discretizacionDePrecios(headph)
 
+
+### Coordenadas geograficas
+
+install.packages("sf")
+install.packages("tidyverse")
+library(sf)
+library(tidyverse)
+radios <- st_read("https://bitsandbricks.github.io/data/CABA_rc.geojson")
+
+ggplot() + geom_sf(data=radios)
+ggplot() + geom_sf(data = radios, aes(fill = BARRIO), color = NA)
+plot(radios["BARRIO"], border = NA)
+
+
+summary(radios)
+View(radios)
+
+inter <- radios %>%
+  select(st_intersection(geometry, ))
+
+
+geom = st_geometry(radios)
