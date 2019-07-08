@@ -408,3 +408,49 @@ headph = head(preciosHorizontalSinFaltantes, n=100)
 headphback = headph
 headph<- agregarColumnasPeriodos(headph)
 headph <- agregarVariaciones(headph)
+
+### Discretizacion
+
+discretizacionVariacion <- function(variacion) {
+  if (variacion < -0.05) {
+    return ("Disminucion Fuerte")
+  }
+  if (variacion < -0.02) {
+    return ("Disminucion Media")
+  }
+  if (variacion < -0.005) {
+    return ("Disminucion Leve")
+  }
+  if (variacion < 0.005) {
+    return ("Mantiene")
+  }
+  if (variacion < 0.02) {
+    return ("Aumento Leve")
+  }
+  if (variacion < 0.05) {
+    return ("Aumento Medio")
+  }
+  
+  return ("Aumento Fuerte")
+}
+
+discretizacionDeVariaciones <- function(dataframe) {
+  
+  for ( i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    
+    dataframe[i,"v1d"] <- discretizacionVariacion( row$`v1`)
+    dataframe[i,"v2d"] <- discretizacionVariacion( row$`v2`)
+    dataframe[i,"v3d"] <- discretizacionVariacion( row$`v3`)
+    dataframe[i,"variacionTotalDiscreta"] <- discretizacionVariacion( row$`variacionTotal`)
+  }
+  
+  return (dataframe)
+}
+
+### Test
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+headph<- agregarColumnasPeriodos(headph)
+headph <- agregarVariaciones(headph)
+headph <- discretizacionDeVariaciones(headph)
