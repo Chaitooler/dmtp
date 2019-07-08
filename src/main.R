@@ -393,11 +393,10 @@ agregarVariaciones <- function(dataframe){
   for ( i in 1:nrow(dataframe)) {
     row <- dataframe[i,]
     
-    dataframe[i,"v1"] <- (row$`3`-row$`1` ) / row$`1`
-    dataframe[i,"v2"] <- (row$`5`-row$`4` ) / row$`4`
-    dataframe[i,"v3"] <- (row$`8`-row$`7` ) / row$`7`
-    dataframe[i,"v4"] <- (row$`10`-row$`8` ) / row$`8`
-    dataframe[i,"variacionTotal"] <- (row$`10`-row$`1` )/row$`1`
+    dataframe[i,"v1"] <- (row$`p2`-row$`p1` ) / row$`p1`
+    dataframe[i,"v2"] <- (row$`p3`-row$`p2` ) / row$`p2`
+    dataframe[i,"v3"] <- (row$`p4`-row$`p3` ) / row$`p3`
+    dataframe[i,"variacionTotal"] <- (row$`p4`-row$`p1` )/row$`1`
   }
   
   return (dataframe)
@@ -407,5 +406,5 @@ agregarVariaciones <- function(dataframe){
 ### Test
 headph = head(preciosHorizontalSinFaltantes, n=100)
 headphback = headph
-
+headph<- agregarColumnasPeriodos(headph)
 headph <- agregarVariaciones(headph)
