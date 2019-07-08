@@ -323,8 +323,7 @@ preciosHorizontal =  preciosclean %>%
 
 
 
-#### Faltantes ALGORITMO
-preciosHorizontalSinFaltantes = preciosHorizontal
+#### Faltantes ALGORITMO PLANO
 
 
 completarFaltantes <- function(dataframe) {
@@ -351,6 +350,8 @@ completarFaltantes <- function(dataframe) {
   return (dataframe)
 }
 
+###TEst
+
 headph = head(preciosHorizontal, n=100)
 headphback = headph
 
@@ -359,3 +360,52 @@ headph <- completarFaltantes(headph)
 print(modify)
 
 #### Precios por periodo
+
+preciosHorizontalSinFaltantes <- completarFaltantes(preciosHorizontal)
+
+
+### Columnas por periodos
+
+agregarColumnasPeriodos <- function(dataframe){
+  for ( i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    
+    dataframe[i,"p1"] <- (row$`1` + row$`2` + row$`3`)/3
+    dataframe[i,"p2"] <- (row$`4` + row$`5` )/2
+    dataframe[i,"p3"] <- (row$`6` + row$`7` )/2
+    dataframe[i,"p4"] <- (row$`8` + row$`9` + row$`10`)/3
+    dataframe[i,"precioPromedio"] <- (row$`1` + row$`2` + row$`3` + row$`4` + row$`5` + row$`6` + row$`7` + row$`8` + row$`9` + row$`9`)/10
+  }
+  
+  return (dataframe)
+}
+
+## Test
+
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+
+headph <- agregarColumnasPeriodos(headph)
+
+### Variaciones
+
+agregarVariaciones <- function(dataframe){
+  for ( i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    
+    dataframe[i,"v1"] <- (row$`3`-row$`1` ) / row$`1`
+    dataframe[i,"v2"] <- (row$`5`-row$`4` ) / row$`4`
+    dataframe[i,"v3"] <- (row$`8`-row$`7` ) / row$`7`
+    dataframe[i,"v4"] <- (row$`10`-row$`8` ) / row$`8`
+    dataframe[i,"variacionTotal"] <- (row$`10`-row$`1` )/row$`1`
+  }
+  
+  return (dataframe)
+}
+
+
+### Test
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+
+headph <- agregarVariaciones(headph)
