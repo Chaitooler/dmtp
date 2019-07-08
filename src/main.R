@@ -288,8 +288,8 @@ preciosconfaltantes <- preciosconfaltantes[ , -which(names(precios) %in% c("fech
 install.packages("mice")
 library(mice)
 
-md.pattern(preciosconfaltantes)
-imputed_Data <- mice(preciosconfaltantes,m=5,maxit=3,method='pmm',seed=500)
+#md.pattern(preciosconfaltantes)
+#imputed_Data <- mice(preciosconfaltantes,m=5,maxit=3,method='pmm',seed=500)
 
 ## Prueba que fecha y medicion aportan misma info
 plot(preciosconfaltantes$fecha, preciosconfaltantes$medicion, xlab = "fecha", ylab = "medicion")
@@ -321,3 +321,41 @@ preciosHorizontal =  preciosclean %>%
   select(-fecha) %>%
   spread(medicion, precio) 
 
+
+
+#### Faltantes ALGORITMO
+preciosHorizontalSinFaltantes = preciosHorizontal
+
+
+completarFaltantes <- function(dataframe) {
+  cols = 3:12
+  print(cols)
+  modify = 0
+  for (i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    
+    for(z in 1:10) {
+      for (j in 3:12) {
+        if (is.na(row[,j])) {
+          if (((j-1) %in% cols) && !is.na(row[,j-1])) {
+            dataframe[i,j] <- row[,j-1]
+            row = dataframe[i,]
+          } else if (((j+1) %in% cols) && !is.na(row[,j+1])) {
+            dataframe[i,j] <- row[,j+1]
+            row = dataframe[i,]
+          }
+        }
+      }
+    }
+  }
+  return (dataframe)
+}
+
+headph = head(preciosHorizontal, n=100)
+headphback = headph
+
+headph <- completarFaltantes(headph)
+
+print(modify)
+
+#### Precios por periodo
