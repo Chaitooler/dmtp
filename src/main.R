@@ -434,19 +434,7 @@ discretizacionVariacion <- function(variacion) {
   return ("Aumento Fuerte")
 }
 
-discretizacionDeVariaciones <- function(dataframe) {
-  
-  for ( i in 1:nrow(dataframe)) {
-    row <- dataframe[i,]
-    
-    dataframe[i,"v1d"] <- discretizacionVariacion( row$`v1`)
-    dataframe[i,"v2d"] <- discretizacionVariacion( row$`v2`)
-    dataframe[i,"v3d"] <- discretizacionVariacion( row$`v3`)
-    dataframe[i,"variacionTotalDiscreta"] <- discretizacionVariacion( row$`variacionTotal`)
-  }
-  
-  return (dataframe)
-}
+
 
 ### Test
 headph = head(preciosHorizontalSinFaltantes, n=100)
@@ -479,7 +467,7 @@ avgPorProducto <- mediasPorProducto(headph)
 
 ### Precios relativos
 preciosRelativoProducto <- function (producto, avgProducto) {
-  print(avgProducto)
+
   return (avgProducto [which(avgProducto$producto == producto),])
 }
 
@@ -488,7 +476,7 @@ preciosRelativos <- function(dataframe, avgPorProducto) {
   for ( i in 1:nrow(dataframe)) {
     row <- dataframe[i,]
     precioRelativoProducto = preciosRelativoProducto(row$producto, avgPorProducto)
-    print(precioRelativoProducto)
+
     dataframe[i,"pr1"] <- (row$p1 - precioRelativoProducto$`avg_p1`) / precioRelativoProducto$`avg_p1`
     dataframe[i,"pr2"] <- (row$p2 - precioRelativoProducto$`avg_p2`) / precioRelativoProducto$`avg_p2`
     dataframe[i,"pr3"] <- (row$p3 - precioRelativoProducto$`avg_p3`) / precioRelativoProducto$`avg_p3`
@@ -505,3 +493,53 @@ headphback = headph
 headph<- agregarColumnasPeriodos(headph)
 avgPorProducto <- mediasPorProducto(headph)
 headph <- preciosRelativos (headph, avgPorProducto)
+
+
+###DiscretizacionPrecios
+discretizacionPrecio <- function(precio) {
+  if (precio < -0.1) {
+    return ("Muy barato")
+  }
+  if (precio < -0.05) {
+    return ("Medianamente barato")
+  }
+  if (precio < -0.01) {
+    return ("Levemente barato")
+  }
+  if (precio < 0.01) {
+    return ("Medio")
+  }
+  if (precio < 0.05) {
+    return ("Levemente caro")
+  }
+  if (precio < 0.1) {
+    return ("Medianamente caro")
+  }
+  
+  return ("Muy caro")
+}
+
+discretizacionDePrecios <- function(dataframe) {
+  
+  for ( i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    
+    dataframe[i,"pr1d"] <- discretizacionPrecio( row$`pr1`)
+    dataframe[i,"pr2d"] <- discretizacionPrecio( row$`pr2`)
+    dataframe[i,"pr3d"] <- discretizacionPrecio( row$`pr3`)
+    dataframe[i,"pr4d"] <- discretizacionPrecio( row$`pr4`)
+    dataframe[i,"prtd"] <- discretizacionPrecio( row$`prt`)
+}
+  
+  return (dataframe)
+}
+
+### Test
+
+headph = head(preciosHorizontalSinFaltantes, n=100)
+headphback = headph
+headph<- agregarColumnasPeriodos(headph)
+avgPorProducto <- mediasPorProducto(headph)
+headph <- preciosRelativos (headph, avgPorProducto)
+headph <- discretizacionDePrecios(headph)
+
