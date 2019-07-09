@@ -725,4 +725,103 @@ inspect(sort(rules, by="lift", decreasing = TRUE))
 
 
 #### Sobre sucursales
-#sucursaleswork = 
+workgigante = merge(work, vocabularioVsNombre, by.x='producto', by.y='id')
+workgigante = merge(workgigante, barrios, by.x='sucursal', by.y='id')
+
+
+datasetreglas = workgigante %>% select(
+  v1d, v2d, v3d, variacionTotalDiscreta,
+  pr1d, pr2d, pr3d, pr4d, prtd,
+  presentacion, marca, 
+  chocolate, desodorante, galletitas, crema, dulce, leche, pack, aerosol, blanco, agua, jabon, liquido, doypack, limon, cafe, manzana, polvo, jugo, naranja, vainilla, light, frutilla, queso, yogur, fideos, mate, vino, tinto, malbec, gas, saborizada, gaseosa,
+  barrio)
+
+datasetreglasback = datasetreglas
+
+rules = apriori(datasetreglas, parameter = list(support=0.1, confidence=0.5, target='rules'))
+print(rules)
+inspect(sort(rules, by="lift", decreasing = TRUE))
+
+
+### PRoductos muy caros
+productosMuyCaros = datasetreglas %>% filter(prtd=='Muy caro') %>% select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+reglasmuycaros = apriori(productosMuyCaros, parameter = list(support=0.1, confidence=0.5, target='rules'))
+inspect(sort(reglasmuycaros, by="lift", decreasing = TRUE))
+
+### PRoductos muy baratos
+productosMuyBaratos = datasetreglas %>% filter(prtd=='Muy barato') %>% select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+reglasmuybaratos = apriori(productosMuyBaratos, parameter = list(support=0.1, confidence=0.4, target='rules'))
+inspect(sort(reglasmuybaratos, by="lift", decreasing = TRUE))
+
+
+###Reglas por barrios
+productosDeRecoleta = datasetreglas %>% filter(barrio=='Recoleta') %>% select(-barrio, -pr2d, -pr3d, -pr1d, -pr4d, -v1d, -v2d, -v3d) ##select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+reglasrecoleta = apriori(productosDeRecoleta, parameter = list(support=0.05, confidence=0.4, target='rules'))
+inspect(sort(reglasrecoleta, by="lift", decreasing = TRUE))
+
+productosDeLugano = datasetreglas %>% filter(barrio=='Villa Lugano') %>% select(-barrio, -pr2d, -pr3d, -pr1d, -pr4d, -v1d, -v2d, -v3d)
+reglaslugano = apriori(productosDeLugano, parameter = list(support=0.1, confidence=0.5, target='rules'))
+inspect(sort(reglaslugano, by="lift", decreasing = TRUE))
+
+
+#### REfinando el dataset
+
+datasetreglas = datasetreglas %>% select(-tinto, -malbec, -blanco, -liquido, -doypack, -gas, -polvo)
+
+
+### Desaceleracion ultimo periodo
+datasetultimoperiodo = datasetreglas %>% filter(v3d %in% c('Mantiene', 'Disminucion leve', 'Disminucion fuerte', 'Disminucion media'))
+datasetultimoperiodo = datasetreglas
+reglasultimo = apriori(datasetultimoperiodo, parameter = list(support=0.05, confidence=0.5, target='rules'))
+
+
+rules_subset <- subset(reglasultimo, (rhs %in% paste0("v3d=", unique(datasetultimoperiodo$v3d))))
+inspect(rules_subset)
+
+
+inspect(sort(reglasultimo, by="lift", decreasing = TRUE))
+
+
+### Galletitas
+datasetgalletitas = datasetreglas %>% filter(galletitas == TRUE) %>% select(-galletitas, -presentacion)
+reglasgalletitas = apriori(datasetgalletitas, parameter = list(support=0.2, confidence=0.5, target='rules'))
+inspect(sort(reglasgalletitas, by="lift", decreasing = TRUE))
+
+
+#### ANalisis predictivo
+rules = apriori(datasetreglas, parameter = list(support=0.1, confidence=0.5, target='rules'))
+print(rules)
+inspect(sort(rules, by="lift", decreasing = TRUE))
+
+rules_subset <- subset(rules, ((rhs %in% paste0("pr1d=", unique(datasetultimoperiodo$pr1d)))))
+inspect(rules_subset)
+
+
+datasetsinultimo = datasetreglas %>% select(-pr4d, -v3d, -variacionTotalDiscreta, -prtd)
+rulessinultimo = apriori(datasetsinultimo, parameter = list(support=0.05, confidence=0.5, target='rules'))
+inspect(sort(rulessinultimo, by="lift", decreasing = TRUE))
+
+
+datasetmetricasultimo = datasetreglas %>% filter(pr3d=='Levemente barato',presentacion==' gr')
+library(ggplot2)
+df = datasetmetricasultimo %>% group_by(v3d) %>% summarise(counts=n())
+ggplot(df, aes(x = v3d, y=counts)) +
+  geom_bar(fill="#0073C2FF", stat='identity') +
+  geom_text(aes(label=counts), vjust = -0.3)
+
+
+datasetmetricasultimo = datasetreglas %>% filter(v1d=='Mantiene',pr2d=='Medio', pr3d=='Medio')
+library(ggplot2)
+df = datasetmetricasultimo %>% group_by(v3d) %>% summarise(counts=n())
+ggplot(df, aes(x = v3d, y=counts)) +
+  geom_bar(fill="#0073C2FF", stat='identity') +
+  geom_text(aes(label=counts), vjust = -0.3)
+
+datasetmetricasultimo = datasetreglas %>% filter(v1d=='Mantiene',pr1d=='Levemente caro')
+library(ggplot2)
+df = datasetmetricasultimo %>% group_by(v3d) %>% summarise(counts=n())
+ggplot(df, aes(x = v3d, y=counts)) +
+  geom_bar(fill="#0073C2FF", stat='identity') +
+  geom_text(aes(label=counts), vjust = -0.3)
+     
+     
