@@ -333,19 +333,22 @@ completarFaltantes <- function(dataframe) {
   for (i in 1:nrow(dataframe)) {
     row <- dataframe[i,]
     
-    for(z in 1:10) {
+
       for (j in 3:12) {
         if (is.na(row[,j])) {
-          if (((j-1) %in% cols) && !is.na(row[,j-1])) {
-            dataframe[i,j] <- row[,j-1]
+          if (((j-1) %in% cols) && !is.na(row[,j-1]) && ((j+1) %in% cols) && !is.na(row[,j+1])) {
+            dataframe[i,j] <- (row[,j-1]+row[,j+1])/2 
             row = dataframe[i,]
-          } else if (((j+1) %in% cols) && !is.na(row[,j+1])) {
+          } else if (!((j-1) %in% cols)) {
             dataframe[i,j] <- row[,j+1]
+            row = dataframe[i,]
+          } else if (!((j+1) %in% cols)) {
+            dataframe[i,j] <- row[,j-1]
             row = dataframe[i,]
           }
         }
       }
-    }
+    
   }
   return (dataframe)
 }
@@ -358,6 +361,26 @@ headphback = headph
 headph <- completarFaltantes(headph)
 
 print(modify)
+
+###Prod
+work = preciosHorizontal
+work = completarFaltantes(work)
+
+### Eliminar faltantes
+library(tidyr)
+eliminarFaltantes <- function(dataframe) {
+  return (dataframe %>% drop_na() ) 
+}
+
+### Test
+headph = head(preciosHorizontal, n=100)
+headphback = headph
+
+headph <- completarFaltantes(headph)
+headph <- eliminarFaltantes(headph)
+
+#Prod
+work = eliminarFaltantes(work)
 
 #### Precios por periodo
 
@@ -387,6 +410,9 @@ headphback = headph
 
 headph <- agregarColumnasPeriodos(headph)
 
+###Prod
+work = agregarColumnasPeriodos(work)
+
 ### Variaciones
 
 agregarVariaciones <- function(dataframe){
@@ -408,6 +434,9 @@ headph = head(preciosHorizontalSinFaltantes, n=100)
 headphback = headph
 headph<- agregarColumnasPeriodos(headph)
 headph <- agregarVariaciones(headph)
+
+###Prod
+work = agregarVariaciones(work)
 
 ### Discretizacion
 
@@ -443,9 +472,11 @@ headph<- agregarColumnasPeriodos(headph)
 headph <- agregarVariaciones(headph)
 headph <- discretizacionDeVariaciones(headph)
 
+###Prod
+work <- discretizacionDeVariaciones(work)
 
 #### Agrupaciones por producto
-
+library(dplyr)
 mediasPorProducto <- function(dataframe) {
   dataframe = dataframe %>% 
     group_by(producto) %>%
@@ -463,6 +494,9 @@ headph = head(preciosHorizontalSinFaltantes, n=100)
 headphback = headph
 headph<- agregarColumnasPeriodos(headph)
 avgPorProducto <- mediasPorProducto(headph)
+
+### Prod
+avgPorProducto = mediasPorProducto(work)
 
 
 ### Precios relativos
@@ -494,6 +528,8 @@ headph<- agregarColumnasPeriodos(headph)
 avgPorProducto <- mediasPorProducto(headph)
 headph <- preciosRelativos (headph, avgPorProducto)
 
+###Prod
+work = preciosRelativos(work, avgPorProducto)
 
 ###DiscretizacionPrecios
 discretizacionPrecio <- function(precio) {
@@ -543,7 +579,9 @@ avgPorProducto <- mediasPorProducto(headph)
 headph <- preciosRelativos (headph, avgPorProducto)
 headph <- discretizacionDePrecios(headph)
 
-
+### Prod
+work = discretizacionDePrecios(work)
+workbackup = work
 ### Coordenadas geograficas
 
 install.packages("sf")
@@ -652,8 +690,8 @@ tdm = TermDocumentMatrix(myCorpus)
 ##Elegimos frecuencia de 20
 inspect(tdm)
 vocabulariotm = findFreqTerms(x = tdm, lowfreq = 20, highfreq = Inf)
-
-
+View(vocabulariotm)
+print(vocabulariotm)
 library(stringr)
 vocabularioVsNombre = productostextos
 
@@ -671,3 +709,20 @@ for ( i in 1:nrow(vocabularioVsNombre)) {
       
   }
 }
+
+
+### A PRIORI
+install.packages("apriori")
+library(apriori)
+
+
+#### Sobre productos
+rules = apriori(vocabularioVsNombre[,5:36], parameter = list(support=0.01, confidence=0.01, target='rules'))
+print(rules)
+inspect(rules)
+
+inspect(sort(rules, by="lift", decreasing = TRUE))
+
+
+#### Sobre sucursales
+#sucursaleswork = 
