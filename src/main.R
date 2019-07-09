@@ -573,8 +573,101 @@ geom = st_geometry(radios)
 
 
 sucursalLatLong = sucursalesclean %>% select(id, lat, lng)
-write.csv(sucursalLatLong, "C:/Users/chait/Desktop/Facultad/dmtp/data/sucursaleslatlong.csv")
+write.csv(sucursalLatLong, "C:/Users/chait/Desktop/Facultad/dmtp/data/sucursaleslatlong.csv
+          ")
 
 
 
-https://api.opencagedata.com/geocode/v1/json?key=6a672e7c63824ffea1bd8d2d3e2f5b6b&q=-34.55212%2C+-58.49841&pretty=1&no_annotations=1  
+####https://api.opencagedata.com/geocode/v1/json?key=6a672e7c63824ffea1bd8d2d3e2f5b6b&q=-34.55212%2C+-58.49841&pretty=1&no_annotations=1  
+
+
+
+barrios = stream_in(file("C:/Users/chait/Desktop/Facultad/dmtp/data/barrios.json",open="r"))
+
+
+### Terminos de productos
+
+productostextos = productos %>% select(id, nombre, presentacion, marca)
+
+### TOlower
+productostextos$nombre = tolower(productostextos$nombre)
+productostextos$marca = tolower(productostextos$marca)
+productostextos$presentacion = tolower(productostextos$presentacion)
+
+## REmove invalids
+install.packages('tm')
+library(tm)
+
+productostextos$nombre = removeNumbers(productostextos$nombre)
+productostextos$marca = removeNumbers(productostextos$marca)
+productostextos$presentacion = removeNumbers(productostextos$presentacion)
+
+productostextos$nombre = removePunctuation(productostextos$nombre)
+productostextos$marca = removePunctuation(productostextos$marca)
+productostextos$presentacion = removePunctuation(productostextos$presentacion)
+
+## Acentos
+
+install.packages('stringi')
+library(stringi)
+
+productostextos$nombre = stri_trans_general(productostextos$nombre, "Latin-ASCII")
+productostextos$marca = stri_trans_general(productostextos$marca, "Latin-ASCII")
+productostextos$presentacion = stri_trans_general(productostextos$presentacion, "Latin-ASCII")
+
+
+productostextos$nombre = stripWhitespace(productostextos$nombre)
+productostextos$marca = stripWhitespace(productostextos$marca)
+productostextos$presentacion = stripWhitespace(productostextos$presentacion)
+
+unidadesUnique = unique(productostextos$presentacion)
+unidadesUnique = stripWhitespace(unidadesUnique)
+
+marcasUnique = unique(productostextos$marca)
+
+productostextos$nombre = removeWords(productostextos$nombre, unidadesUnique)
+productostextos$nombre = removeWords(productostextos$nombre, marcasUnique)
+
+
+stopw = stopwords(kind='sp')
+
+productostextos$nombre = removeWords(productostextos$nombre, stopw)
+productostextos$nombre = stripWhitespace(productostextos$nombre)
+
+write.csv(productostextos, "C:/Users/chait/Desktop/Facultad/dmtp/data/previoprocesamientoreglas.csv")
+
+##################
+
+### Freq terms
+install.packages("tm")
+library(tm)
+
+install.packages('arules')
+library(arules)
+
+voctable = data.frame(sentence = productostextos$nombre)
+myCorpus = Corpus(VectorSource(voctable$sentence))
+tdm = TermDocumentMatrix(myCorpus)
+
+##Elegimos frecuencia de 20
+inspect(tdm)
+vocabulariotm = findFreqTerms(x = tdm, lowfreq = 20, highfreq = Inf)
+
+
+library(stringr)
+vocabularioVsNombre = productostextos
+
+for ( i in 1:nrow(vocabularioVsNombre)) {
+  row = vocabularioVsNombre[i,]
+  
+  for (j in vocabulariotm) {
+    if (str_detect(row$nombre, j) ) {
+      print(row$nombre)
+      print(j)
+      vocabularioVsNombre[i,j] <- TRUE
+    } else {
+      vocabularioVsNombre[i,j] <- NA
+    }
+      
+  }
+}
