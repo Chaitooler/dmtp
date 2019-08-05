@@ -93,8 +93,106 @@ preciosPorProductoPorSucursalNOFaltantes = preciosclean %>%
   summarise(avg_precio = mean(precio, na.rm=TRUE), var = sd(precio, na.rm = TRUE), mediciones = n()) %>%
   filter(mediciones==10)
 
+preciosFaltantesHorizontal = preciosHorizontal
+
+preciosFaltantesHorizontal$media <- rowMeans(preciosFaltantesHorizontal[,3:12], na.rm=TRUE)
+
+reg1 = lm(preciosFaltantesHorizontal$`1`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg1)
+
+reg2 = lm(preciosFaltantesHorizontal$`2`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg2)
+
+reg3 = lm(preciosFaltantesHorizontal$`3`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg3)
+
+reg4 = lm(preciosFaltantesHorizontal$`4`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg4)
+
+reg5 = lm(preciosFaltantesHorizontal$`5`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg5)
+
+reg6 = lm(preciosFaltantesHorizontal$`6`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg6)
+
+reg7 = lm(preciosFaltantesHorizontal$`7`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg7)
+
+reg8 = lm(preciosFaltantesHorizontal$`8`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg8)
+
+reg9 = lm(preciosFaltantesHorizontal$`9`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg9)
+
+reg10 = lm(preciosFaltantesHorizontal$`10`~preciosFaltantesHorizontal$media, na.action=na.exclude)
+print(reg10)
+
+reg1$coefficients
+r1p = predict(object=reg1, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r2p= predict(object=reg2, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r3p= predict(object=reg3, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r4p= predict(object=reg4, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r5p= predict(object=reg5, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r6p= predict(object=reg6, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r7p= predict(object=reg7, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r8p= predict(object=reg8, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r9p= predict(object=reg9, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+r10p= predict(object=reg10, newdata=data.frame(preciosFaltantesHorizontal$`media`))
+40.15*1.0493762 + 0.1469315
+
+View(r1p)
+View(r2p)
+
+completarFaltantesRegresion <- function(dataframe) {
+  print(r1p)
+  for (i in 1:nrow(dataframe)) {
+    row <- dataframe[i,]
+    if (is.na(row[,"1"])) {
+      dataframe[i,"1"] <- r1p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"2"])) {
+      dataframe[i,"2"] <- r2p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"3"])) {
+      dataframe[i,"3"] <- r3p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"4"])) {
+      dataframe[i,"4"] <- r4p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"5"])) {
+      dataframe[i,"5"] <- r5p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"6"])) {
+      dataframe[i,"6"] <- r6p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"7"])) {
+      dataframe[i,"7"] <- r7p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"8"])) {
+      dataframe[i,"8"] <- r8p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"9"])) {
+      dataframe[i,"9"] <- r9p[i] 
+      row = dataframe[i,]
+    }
+    if (is.na(row[,"10"])) {
+      dataframe[i,"10"] <- r10p[i] 
+      row = dataframe[i,]
+    }
+  }
+  return (dataframe)
+}
 
 
+preciosFaltantesCompletos = completarFaltantesRegresion(preciosFaltantesHorizontal)
 #vemos que hay muchso datos faltantes. Se verá a futuro si hacen falta en el análisis o no.
 
 ## OUTLIERS ###
@@ -113,6 +211,12 @@ pregunta1 = preciosPorProducto %>%
 
 joined= inner_join(pregunta1, productos, by=c("producto" = "id"))
 
+### Rehecha
+library(dplyr)
+p1r = preciosFaltantesCompletos %>%
+  group_by(producto) %>%
+  summarise(avg_m1 = mean(`1`), avg_m10 = mean(`10`), media=mean(media), score = (avg_m10-avg_m1)/media)
+joinedp1r= inner_join(p1r, productos, by=c("producto" = "id"))
 
 ### Pregunta 2 y 3 Marcas con mayor modificacion de precios
 
@@ -121,6 +225,14 @@ pregunta2 = inner_join(preciosPorProducto, productos, by=c("producto"="id"))
 pregunta2joineada = pregunta2 %>%
   group_by(marca) %>%
   summarise(avg_var = median(var, na.rm=TRUE))
+
+### Rehecho
+completosJoineados = inner_join(preciosFaltantesCompletos, productos, by=c('producto'='id'))
+
+p2r = completosJoineados %>%
+  group_by(marca) %>%
+  summarise(avg_m1 = mean(`1`), avg_m10 = mean(`10`), media=mean(media), score = (avg_m10-avg_m1)/media)
+
 
 ### Pregunta 4 Hipermercados vs supermercados
 
