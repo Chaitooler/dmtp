@@ -283,8 +283,29 @@ O = preciosclean %>%
 boxplot(Q$precio ~ Q$medicion)
 
 boxplot(O$precio  ~  O$medicion)
+
+### Rehecha
+summary(completosJoineados$media)
+QR = completosJoineados %>% filter(media < 42)
+OR = completosJoineados %>% filter(media > 96)
   
-  
+boxplot(QR$media, OR$media)
+
+boxplot(OR$media)
+
+QRS = QR %>% 
+  group_by(producto) %>% 
+  summarise(avg_m1 = mean(`1`), avg_m10 = mean(`10`), media=mean(media), score = (avg_m10-avg_m1)/media)
+
+ORS = OR %>% 
+  group_by(producto) %>% 
+  summarise(avg_m1 = mean(`1`), avg_m10 = mean(`10`), media=mean(media), score = (avg_m10-avg_m1)/media)
+
+summary(QRS$score)
+summary(ORS$score)
+
+boxplot(QRS$score, ORS$score)
+
 ### Agrupaciones por producto
 
 preciosPorProductoTotal = preciosclean %>%
