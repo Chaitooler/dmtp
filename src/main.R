@@ -744,8 +744,8 @@ geom = st_geometry(radios)
 
 
 sucursalLatLong = sucursalesclean %>% select(id, lat, lng)
-write.csv(sucursalLatLong, "C:/Users/chait/Desktop/Facultad/dmtp/data/sucursaleslatlong.csv
-          ")
+
+write.csv(sucursalLatLong, "C:/Users/chait/Desktop/Facultad/dmtp/data/sucursaleslatlong.csv")
 
 
 
@@ -852,7 +852,10 @@ library(apriori)
 #### Sobre productos
 rules = apriori(vocabularioVsNombre[,5:36], parameter = list(support=0.01, confidence=0.01, target='rules'))
 print(rules)
+
 inspect(rules)
+plotly_arules(rules)
+inspectDT(rules)
 
 inspect(sort(rules, by="lift", decreasing = TRUE))
 
@@ -862,9 +865,16 @@ workgigante = merge(work, vocabularioVsNombre, by.x='producto', by.y='id')
 workgigante = merge(workgigante, barrios, by.x='sucursal', by.y='id')
 
 
+#datasetreglas = workgigante %>% select(
+#  variacion1 = v1d, variacion2 = v2d,variacion3 = v3d, variacionTotalDiscreta,
+#  precio1 = pr1d, precio2 = pr2d, precio3 = pr3d, precio4 = pr4d, precioRelativoTotal = prtd,
+#  presentacion, marca, 
+#  chocolate, desodorante, galletitas, crema, dulce, leche, pack, aerosol, blanco, agua, jabon, liquido, doypack, limon, cafe, manzana, polvo, jugo, naranja, vainilla, light, frutilla, queso, yogur, fideos, mate, vino, tinto, malbec, gas, saborizada, gaseosa,
+#  barrio)
+
 datasetreglas = workgigante %>% select(
-  v1d, v2d, v3d, variacionTotalDiscreta,
-  pr1d, pr2d, pr3d, pr4d, prtd,
+  variacion1 = v1d, variacion2 = v2d,variacion3 = v3d, variacionTotalDiscreta,
+  precio1 = pr1d, precio2 = pr2d, precio3 = pr3d, precio4 = pr4d, precioRelativoTotal = prtd,
   presentacion, marca, 
   chocolate, desodorante, galletitas, crema, dulce, leche, pack, aerosol, blanco, agua, jabon, liquido, doypack, limon, cafe, manzana, polvo, jugo, naranja, vainilla, light, frutilla, queso, yogur, fideos, mate, vino, tinto, malbec, gas, saborizada, gaseosa,
   barrio)
@@ -874,28 +884,41 @@ datasetreglasback = datasetreglas
 rules = apriori(datasetreglas, parameter = list(support=0.1, confidence=0.5, target='rules'))
 print(rules)
 inspect(sort(rules, by="lift", decreasing = TRUE))
+plotly_arules(rules)
+inspectDT(rules)
+
+##REFINO DATASET
+datasetreglas = datasetreglas %>% select(-tinto, -malbec, -blanco, -liquido, -doypack, -gas, -polvo)
+
 
 
 ### PRoductos muy caros
-productosMuyCaros = datasetreglas %>% filter(prtd=='Muy caro') %>% select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+productosMuyCaros = datasetreglas %>% filter(precioRelativoTotal=='Muy caro') %>% select(-precioRelativoTotal, -precio1, -precio2, -precio3, -precio4)
 reglasmuycaros = apriori(productosMuyCaros, parameter = list(support=0.1, confidence=0.5, target='rules'))
 inspect(sort(reglasmuycaros, by="lift", decreasing = TRUE))
+plotly_arules(reglasmuycaros)
+inspectDT(reglasmuycaros)
+
 
 ### PRoductos muy baratos
-productosMuyBaratos = datasetreglas %>% filter(prtd=='Muy barato') %>% select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+productosMuyBaratos = datasetreglas %>% filter(precioRelativoTotal=='Muy barato') %>% select(-precioRelativoTotal, -precio1, -precio2, -precio3, -precio4)
 reglasmuybaratos = apriori(productosMuyBaratos, parameter = list(support=0.1, confidence=0.4, target='rules'))
 inspect(sort(reglasmuybaratos, by="lift", decreasing = TRUE))
-
+plotly_arules(reglasmuybaratos)
+inspectDT(reglasmuybaratos)
 
 ###Reglas por barrios
-productosDeRecoleta = datasetreglas %>% filter(barrio=='Recoleta') %>% select(-barrio, -pr2d, -pr3d, -pr1d, -pr4d, -v1d, -v2d, -v3d) ##select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
+productosDeRecoleta = datasetreglas %>% filter(barrio=='Recoleta') %>% select(-barrio, -precio1, -precio2, -precio3, -precio4, -variacion1, -variacion2, -variacion3) ##select(-prtd, -pr2d, -pr1d, -pr3d, -pr4d)
 reglasrecoleta = apriori(productosDeRecoleta, parameter = list(support=0.05, confidence=0.4, target='rules'))
 inspect(sort(reglasrecoleta, by="lift", decreasing = TRUE))
+plotly_arules(reglasrecoleta)
+inspectDT(reglasrecoleta)
 
-productosDeLugano = datasetreglas %>% filter(barrio=='Villa Lugano') %>% select(-barrio, -pr2d, -pr3d, -pr1d, -pr4d, -v1d, -v2d, -v3d)
+productosDeLugano = datasetreglas %>% filter(barrio=='Villa Lugano') %>% select(-barrio, -precio1, -precio2, -precio3, -precio4, -variacion1, -variacion2, -variacion3)
 reglaslugano = apriori(productosDeLugano, parameter = list(support=0.1, confidence=0.5, target='rules'))
 inspect(sort(reglaslugano, by="lift", decreasing = TRUE))
-
+plotly_arules(reglaslugano)
+inspectDT(reglaslugano)
 
 #### REfinando el dataset
 
@@ -903,14 +926,17 @@ datasetreglas = datasetreglas %>% select(-tinto, -malbec, -blanco, -liquido, -do
 
 
 ### Desaceleracion ultimo periodo
-datasetultimoperiodo = datasetreglas %>% filter(v3d %in% c('Mantiene', 'Disminucion leve', 'Disminucion fuerte', 'Disminucion media'))
-datasetultimoperiodo = datasetreglas
-reglasultimo = apriori(datasetultimoperiodo, parameter = list(support=0.05, confidence=0.5, target='rules'))
+datasetultimoperiodo = datasetreglas %>% filter(variacion3 %in% c('Mantiene', 'Disminucion leve', 'Disminucion fuerte', 'Disminucion media'))
+#datasetultimoperiodo = datasetreglas
+reglasultimo = apriori(datasetultimoperiodo, parameter = list(support=0.1, confidence=0.5, target='rules'))
+plotly_arules(reglasultimo)
+inspectDT(reglasultimo)
 
-
-rules_subset <- subset(reglasultimo, (rhs %in% paste0("v3d=", unique(datasetultimoperiodo$v3d))))
+rules_subset <- subset(reglasultimo, (rhs %in% paste0("variacion3=", unique(datasetultimoperiodo$variacion3))))
 inspect(rules_subset)
 
+plotly_arules(rules_subset)
+inspectDT(rules_subset)
 
 inspect(sort(reglasultimo, by="lift", decreasing = TRUE))
 
@@ -919,9 +945,23 @@ inspect(sort(reglasultimo, by="lift", decreasing = TRUE))
 datasetgalletitas = datasetreglas %>% filter(galletitas == TRUE) %>% select(-galletitas, -presentacion)
 reglasgalletitas = apriori(datasetgalletitas, parameter = list(support=0.2, confidence=0.5, target='rules'))
 inspect(sort(reglasgalletitas, by="lift", decreasing = TRUE))
-
+plotly_arules(reglasgalletitas)
+inspectDT(reglasgalletitas)
 
 #### ANalisis predictivo
+## Rehecho
+subsetPrimerosPeriodos = datasetreglas %>% select(-variacion3, -precio4)
+
+subsetUltimoPeriodo = datasetreglas %>% select(-variacion1, -variacion2, -precio1, -precio2,-precio3)
+
+reglasprimerperiodo = apriori(subsetPrimerosPeriodos, parameter = list(support=0.1, confidence=0.5, target='rules'))
+plotly_arules(reglasprimerperiodo)
+inspectDT(reglasprimerperiodo)
+
+reglasultimoperiodo = apriori(subsetUltimoPeriodo, parameter = list(support=0.1, confidence=0.5, target='rules'))
+plotly_arules(reglasultimoperiodo)
+inspectDT(reglasultimoperiodo)
+####TRASH
 rules = apriori(datasetreglas, parameter = list(support=0.1, confidence=0.5, target='rules'))
 print(rules)
 inspect(sort(rules, by="lift", decreasing = TRUE))
@@ -958,3 +998,9 @@ ggplot(df, aes(x = v3d, y=counts)) +
   geom_text(aes(label=counts), vjust = -0.3)
      
      
+
+####VIZ
+install.packages("arulesViz")
+library(arulesViz)
+plotly_arules(rules)
+inspectDT(rules)
